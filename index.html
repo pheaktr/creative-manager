@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Content Schedule Manager</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts included in CSS -->
+</head>
+<body>
+    <div class="app-container">
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <div class="logo-container" style="margin-bottom: 0;">
+                <div class="logo-icon">C</div>
+                <span class="logo-text">CreativeManager</span>
+            </div>
+            <button class="btn btn-secondary" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <div class="logo-icon">C</div>
+                <span class="logo-text">CreativeManager</span>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <a href="#calendar" class="nav-item" data-page="calendar">
+                    <i class="fas fa-calendar-alt"></i> Calendar
+                </a>
+                <a href="#daily" class="nav-item" data-page="daily">
+                    <i class="fas fa-list-check"></i> Daily Tasks
+                </a>
+                <a href="#tasks" class="nav-item" data-page="tasks">
+                    <i class="fas fa-tasks"></i> All Tasks
+                </a>
+                <a href="#templates" class="nav-item" data-page="templates">
+                    <i class="fas fa-file-code"></i> Script Templates
+                </a>
+                <a href="#captions" class="nav-item" data-page="captions">
+                    <i class="fas fa-closed-captioning"></i> Khmer Captions
+                </a>
+                <a href="#kpi" class="nav-item" data-page="kpi">
+                    <i class="fas fa-chart-line"></i> KPI Tracker
+                </a>
+                <a href="#settings" class="nav-item" data-page="settings">
+                    <i class="fas fa-cog"></i> Settings
+                </a>
+                
+                <div class="theme-toggle" style="margin-top: 20px; padding: 12px 16px; border-top: 1px solid var(--border);">
+                    <button class="btn btn-secondary" onclick="toggleTheme()" style="width: 100%; justify-content: center;">
+                        <i class="fas fa-moon" id="themeIcon"></i> <span id="themeText">Dark Mode</span>
+                    </button>
+                </div>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <p style="font-size: 0.7rem; color: var(--text-muted);">v1.0.0 Stable</p>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Dashboard Page -->
+            <section id="dashboard" class="content-section active">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Dashboard</h1>
+                        <p>Welcome back! Here's your production overview.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" id="syncBtn" onclick="syncWithSheets()">
+                            <i class="fas fa-sync"></i> Sync Sheets
+                        </button>
+                        <button class="btn btn-primary" onclick="openModal('taskModal')">
+                            <i class="fas fa-plus"></i> New Task
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card-grid" id="statCards">
+                    <!-- Stats will be injected by JS -->
+                </div>
+
+                <div class="dashboard-secondary-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+                    <div class="card" style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <h3 style="margin-bottom: 20px;">Recent Tasks</h3>
+                        <div id="recentTasksList">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                    <div class="card" style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <h3 style="margin-bottom: 20px;">Priority Focus</h3>
+                        <div id="priorityFocusList">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Calendar Page -->
+            <section id="calendar" class="content-section">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Content Calendar</h1>
+                        <p>Plan your shooting and posting schedule visually.</p>
+                    </div>
+                </div>
+                <div class="calendar-container">
+                    <div class="calendar-header">
+                        <h2 id="currentMonthYear">May 2026</h2>
+                        <div class="calendar-nav">
+                            <button class="btn btn-secondary" id="prevMonth"><i class="fas fa-chevron-left"></i></button>
+                            <button class="btn btn-secondary" id="nextMonth"><i class="fas fa-chevron-right"></i></button>
+                        </div>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid">
+                        <!-- Calendar grid injected by JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Daily Tasks Page -->
+            <section id="daily" class="content-section">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Daily Planner</h1>
+                        <p>Tasks scheduled for today, <span id="todayDateLabel"></span>.</p>
+                    </div>
+                </div>
+                <div id="dailyTaskList" class="task-list-container">
+                    <!-- Injected by JS -->
+                </div>
+            </section>
+
+            <!-- All Tasks Page -->
+            <section id="tasks" class="content-section">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Task Manager</h1>
+                        <p>Manage all your creative projects in one place.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-secondary" onclick="openModal('generatorModal')">
+                            <i class="fas fa-magic"></i> Bulk Generator
+                        </button>
+                        <button class="btn btn-primary" onclick="openModal('taskModal')">
+                            <i class="fas fa-plus"></i> New Task
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="filters-bar" style="display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap;">
+                    <input type="text" id="searchTask" placeholder="Search tasks..." style="flex: 1; min-width: 200px;">
+                    <select id="filterStatus" style="width: 150px;">
+                        <option value="">All Status</option>
+                        <option value="Idea">Idea</option>
+                        <option value="Script">Script</option>
+                        <option value="Shooting">Shooting</option>
+                        <option value="Editing">Editing</option>
+                        <option value="Review">Review</option>
+                        <option value="Posted">Posted</option>
+                        <option value="Done">Done</option>
+                    </select>
+                    <select id="filterClient" style="width: 150px;">
+                        <option value="">All Clients</option>
+                    </select>
+                </div>
+
+                <div class="table-container" style="background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead style="background: var(--bg-sidebar);">
+                            <tr>
+                                <th style="padding: 16px;">Task</th>
+                                <th style="padding: 16px;">Client</th>
+                                <th style="padding: 16px;">Type</th>
+                                <th style="padding: 16px;">Deadline</th>
+                                <th style="padding: 16px;">Status</th>
+                                <th style="padding: 16px;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="taskTableBody">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Templates Page -->
+            <section id="templates" class="content-section">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Script Templates</h1>
+                        <p>Reusable structures for high-converting content.</p>
+                    </div>
+                </div>
+                <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px;" id="templateGrid">
+                    <!-- Injected by JS -->
+                </div>
+            </section>
+
+            <!-- Captions Page -->
+            <section id="captions" class="content-section">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Khmer Caption Generator</h1>
+                        <p>Generate high-engagement captions in Khmer.</p>
+                    </div>
+                </div>
+                <div class="caption-generator-container" style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px;">
+                    <div class="generator-form card" style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <div class="form-group">
+                            <label>Hook (ចំណងជើងទាក់ទាញ)</label>
+                            <input type="text" id="capHook" placeholder="ឧទាហរណ៍៖ របៀបបង្កើតវីដេអូស្អាត...">
+                        </div>
+                        <div class="form-group">
+                            <label>Problem (បញ្ហាដែលជួបប្រទះ)</label>
+                            <textarea id="capProblem" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Benefit (អត្ថប្រយោជន៍)</label>
+                            <textarea id="capBenefit" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>CTA (ជំរុញឱ្យធ្វើសកម្មភាព)</label>
+                            <input type="text" id="capCTA" placeholder="ឧទាហរណ៍៖ ចុច Follow ដើម្បីរៀនបន្ថែម">
+                        </div>
+                        <div class="form-group">
+                            <label>Hashtags</label>
+                            <input type="text" id="capHashtags" value="#videography #graphicdesign #contentcreator">
+                        </div>
+                        <button class="btn btn-primary" onclick="generateCaption()" style="width: 100%;">Generate Caption</button>
+                    </div>
+                    <div class="generator-result card" style="background: var(--bg-sidebar); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border); position: relative;">
+                        <h4 style="margin-bottom: 16px; color: var(--text-muted);">Result</h4>
+                        <div id="captionOutput" style="white-space: pre-wrap; font-family: 'Kantumruy Pro'; line-height: 1.6;">
+                            Your generated caption will appear here...
+                        </div>
+                        <button class="btn btn-secondary" onclick="copyCaption()" style="position: absolute; bottom: 20px; right: 20px;">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- KPI Tracker Page -->
+            <section id="kpi" class="content-section">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Performance Tracker</h1>
+                        <p>Monitor your content reach and engagement metrics.</p>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-primary" onclick="openModal('kpiModal')">
+                            <i class="fas fa-plus"></i> Add Entry
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container" style="background: var(--bg-card); border-radius: var(--radius-lg); border: 1px solid var(--border); overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead style="background: var(--bg-sidebar);">
+                            <tr>
+                                <th style="padding: 16px;">Post Link</th>
+                                <th style="padding: 16px;">Reach</th>
+                                <th style="padding: 16px;">Views</th>
+                                <th style="padding: 16px;">Engagement</th>
+                                <th style="padding: 16px;">Leads</th>
+                                <th style="padding: 16px;">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kpiTableBody">
+                            <!-- Injected by JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Settings Page -->
+            <section id="settings" class="content-section">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Settings</h1>
+                        <p>Configure your workspace and data.</p>
+                    </div>
+                </div>
+                <div class="settings-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+                    <div class="card" style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <h3>Google Sheets Integration</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 12px;">Paste your Apps Script Web App URL below to sync your data.</p>
+                        <div class="form-group">
+                            <input type="url" id="sheetsUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+                        </div>
+                        <button class="btn btn-primary" onclick="saveSheetsUrl()">Save URL</button>
+                    </div>
+                    <div class="card" style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <h3>Data Management</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Export your tasks to CSV or import from a previous backup.</p>
+                        <div style="display: flex; gap: 12px;">
+                            <button class="btn btn-secondary" onclick="exportToCSV()"><i class="fas fa-download"></i> Export CSV</button>
+                            <label for="importCsv" class="btn btn-secondary" style="margin-bottom: 0;"><i class="fas fa-upload"></i> Import CSV</label>
+                            <input type="file" id="importCsv" style="display: none;" accept=".csv">
+                        </div>
+                    </div>
+                    <div class="card" style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <h3>System</h3>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">Reset all data or toggle themes.</p>
+                        <button class="btn btn-secondary" onclick="resetData()" style="color: var(--danger); border-color: var(--danger);"><i class="fas fa-trash"></i> Reset All Data</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <!-- Task Modal -->
+    <div id="taskModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('taskModal')">&times;</button>
+            <h2 id="taskModalTitle" style="margin-bottom: 24px;">Add New Task</h2>
+            <form id="taskForm">
+                <input type="hidden" id="taskId">
+                <div class="form-group">
+                    <label>Task Title *</label>
+                    <input type="text" id="taskTitle" required placeholder="e.g. Product Promo Video">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Client / Brand</label>
+                        <input type="text" id="taskClient" placeholder="e.g. Coca Cola">
+                    </div>
+                    <div class="form-group">
+                        <label>Platform</label>
+                        <select id="taskPlatform">
+                            <option>Facebook</option>
+                            <option>TikTok</option>
+                            <option>YouTube</option>
+                            <option>Instagram</option>
+                            <option>Website</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Content Type</label>
+                        <select id="taskContentType">
+                            <option>Poster</option>
+                            <option>Video</option>
+                            <option>Reel</option>
+                            <option>TikTok</option>
+                            <option>Story</option>
+                            <option>Thumbnail</option>
+                            <option>Live Thumbnail</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Type</label>
+                        <select id="taskWorkType">
+                            <option>Videography</option>
+                            <option>Graphic Design</option>
+                            <option>Motion Graphic</option>
+                            <option>Photo Shooting</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="taskStatus">
+                            <option>Idea</option>
+                            <option>Script</option>
+                            <option>Shooting</option>
+                            <option>Editing</option>
+                            <option>Review</option>
+                            <option>Posted</option>
+                            <option>Done</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="taskPriority">
+                            <option>Low</option>
+                            <option>Medium</option>
+                            <option>High</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Shoot Date</label>
+                        <input type="date" id="taskShootDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Post/Deadline Date</label>
+                        <input type="date" id="taskPostDate">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>File Link (Google Drive / Frame.io)</label>
+                    <input type="url" id="taskFileLink" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                    <label>Script Idea / Caption</label>
+                    <textarea id="taskScript" rows="3"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 10px;">Save Task</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Generator Modal -->
+    <div id="generatorModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('generatorModal')">&times;</button>
+            <h2 style="margin-bottom: 12px;">Monthly Task Generator</h2>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px;">Auto-generate standard tasks for the current month.</p>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Posters Quantity</label>
+                    <input type="number" id="genPosters" value="4">
+                </div>
+                <div class="form-group">
+                    <label>Videos Quantity</label>
+                    <input type="number" id="genVideos" value="2">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>TikTok/Reels Quantity</label>
+                    <input type="number" id="genReels" value="8">
+                </div>
+                <div class="form-group">
+                    <label>Thumbnails Quantity</label>
+                    <input type="number" id="genThumbnails" value="4">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Target Month (Pick any date in the month)</label>
+                <input type="date" id="genMonth">
+            </div>
+            <button class="btn btn-primary" onclick="generateBulkTasks()" style="width: 100%; justify-content: center; margin-top: 10px;">Generate Tasks</button>
+        </div>
+    </div>
+
+    <!-- KPI Modal -->
+    <div id="kpiModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="close-modal" onclick="closeModal('kpiModal')">&times;</button>
+            <h2 style="margin-bottom: 24px;">Add KPI Entry</h2>
+            <form id="kpiForm">
+                <div class="form-group">
+                    <label>Post Link</label>
+                    <input type="url" id="kpiLink" required placeholder="https://fb.com/...">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Reach</label>
+                        <input type="number" id="kpiReach" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Views</label>
+                        <input type="number" id="kpiViews" value="0">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Engagement</label>
+                        <input type="number" id="kpiEngagement" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Leads</label>
+                        <input type="number" id="kpiLeads" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="kpiNotes" rows="2"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Save Entry</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
