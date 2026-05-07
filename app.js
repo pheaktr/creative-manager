@@ -10,6 +10,7 @@ let state = {
     viewDate: new Date(), // For calendar
     currentPage: 'dashboard',
     sheetsUrl: '', // Google Apps Script URL
+    aiKey: '', // OpenAI API Key
     isSyncing: false
 };
 
@@ -88,14 +89,14 @@ document.addEventListener('DOMContentLoaded', () => {
 function loadData() {
     const savedTasks = localStorage.getItem('cc_tasks');
     const savedKpis = localStorage.getItem('cc_kpis');
-    
+
     if (savedTasks) {
         state.tasks = JSON.parse(savedTasks);
     } else {
         state.tasks = [...demoTasks];
         saveData();
     }
-    
+
     if (savedKpis) {
         state.kpis = JSON.parse(savedKpis);
     }
@@ -104,7 +105,7 @@ function loadData() {
 function saveData() {
     localStorage.setItem('cc_tasks', JSON.stringify(state.tasks));
     localStorage.setItem('cc_kpis', JSON.stringify(state.kpis));
-    
+
     // Auto-sync if URL is present
     if (state.sheetsUrl && !state.isSyncing) {
         syncWithSheets();
@@ -167,7 +168,7 @@ function setupModalListeners() {
 
 function navigateTo(pageId) {
     state.currentPage = pageId;
-    
+
     // Update Sidebar UI
     document.querySelectorAll('.nav-item').forEach(item => {
         item.classList.toggle('active', item.getAttribute('data-page') === pageId);
@@ -186,7 +187,7 @@ function toggleSidebar() {
 }
 
 function renderCurrentPage() {
-    switch(state.currentPage) {
+    switch (state.currentPage) {
         case 'dashboard':
             updateDashboardStats();
             renderRecentTasks();
@@ -218,7 +219,7 @@ function renderCurrentPage() {
 function updateDashboardStats() {
     const now = new Date();
     const todayStr = now.toISOString().split('T')[0];
-    
+
     const stats = {
         total: state.tasks.length,
         today: state.tasks.filter(t => t.postDate === todayStr).length,
@@ -253,7 +254,7 @@ function updateDashboardStats() {
 function renderRecentTasks() {
     const recent = [...state.tasks].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 5);
     const container = document.getElementById('recentTasksList');
-    
+
     if (recent.length === 0) {
         container.innerHTML = '<p style="color: var(--text-muted);">No tasks yet.</p>';
         return;
@@ -284,38 +285,38 @@ function renderRecentTasks() {
 function renderCalendar() {
     const grid = document.getElementById('calendarGrid');
     const title = document.getElementById('currentMonthYear');
-    
+
     const year = state.viewDate.getFullYear();
     const month = state.viewDate.getMonth();
-    
+
     title.innerText = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(state.viewDate);
-    
+
     grid.innerHTML = '';
-    
+
     // Day labels
     ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(day => {
         grid.innerHTML += `<div class="calendar-day-label">${day}</div>`;
     });
-    
+
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    
+
     // Padding
     for (let i = 0; i < firstDay; i++) {
         grid.innerHTML += `<div class="calendar-day empty"></div>`;
     }
-    
+
     const todayStr = new Date().toISOString().split('T')[0];
 
     for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const dayTasks = state.tasks.filter(t => t.postDate === dateStr || t.shootDate === dateStr);
         const isToday = dateStr === todayStr;
-        
+
         let taskHtml = dayTasks.slice(0, 3).map(t => `
             <div class="task-pill" style="background: ${getTaskColor(t.contentType)}">${t.title}</div>
         `).join('');
-        
+
         if (dayTasks.length > 3) taskHtml += `<div style="font-size: 0.6rem; color: var(--text-muted); text-align: center;">+${dayTasks.length - 3} more</div>`;
 
         grid.innerHTML += `
@@ -328,7 +329,7 @@ function renderCalendar() {
 }
 
 function getTaskColor(type) {
-    switch(type) {
+    switch (type) {
         case 'Video': return '#3B82F6';
         case 'Poster': return '#10B981';
         case 'Reel': case 'TikTok': return '#F59E0B';
@@ -375,7 +376,7 @@ function renderTaskTable() {
 }
 
 function getStatusColor(status) {
-    switch(status) {
+    switch (status) {
         case 'Done': case 'Posted': return 'var(--success)';
         case 'Idea': return 'var(--text-muted)';
         case 'Shooting': return 'var(--warning)';
@@ -458,7 +459,7 @@ function generateBulkTasks() {
     const reels = parseInt(document.getElementById('genReels').value) || 0;
     const thumbs = parseInt(document.getElementById('genThumbnails').value) || 0;
     const dateVal = document.getElementById('genMonth').value; // YYYY-MM-DD
-    
+
     if (!dateVal) {
         alert('Please select a target date/month.');
         return;
@@ -510,10 +511,10 @@ function generateBulkTasks() {
 function renderDailyTasks() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('todayDateLabel').innerText = new Date().toLocaleDateString();
-    
+
     const daily = state.tasks.filter(t => t.postDate === today || t.shootDate === today);
     const container = document.getElementById('dailyTaskList');
-    
+
     if (daily.length === 0) {
         container.innerHTML = '<div style="padding: 40px; text-align: center; background: var(--bg-card); border-radius: var(--radius-lg); border: 1px dashed var(--border); color: var(--text-muted);">No tasks scheduled for today.</div>';
         return;
@@ -624,7 +625,7 @@ function closeModal(id) {
 // --- Google Sheets Sync ---
 async function syncWithSheets() {
     if (!state.sheetsUrl) return alert('Please enter your Google Apps Script URL in Settings.');
-    
+
     state.isSyncing = true;
     updateSyncStatus('Syncing...');
 
@@ -639,7 +640,7 @@ async function syncWithSheets() {
         // 2. Pull latest from Sheets (GET)
         const getResponse = await fetch(state.sheetsUrl);
         const remoteTasks = await getResponse.json();
-        
+
         if (remoteTasks && Array.isArray(remoteTasks)) {
             state.tasks = remoteTasks;
             saveData();
@@ -672,12 +673,12 @@ function copyText(text) {
 
 function exportToCSV() {
     if (state.tasks.length === 0) return alert('No tasks to export.');
-    
+
     // Define headers explicitly to ensure consistency even if state is empty/different
     const headers = ['id', 'title', 'client', 'platform', 'contentType', 'workType', 'status', 'priority', 'shootDate', 'postDate', 'fileLink', 'script', 'createdAt'];
     const rows = state.tasks.map(t => headers.map(h => `"${String(t[h] || '').replace(/"/g, '""')}"`).join(','));
     const csvContent = "data:text/csv;charset=utf-8," + headers.join(',') + "\n" + rows.join("\n");
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -704,7 +705,7 @@ function handleCsvImport(e) {
                 script: values[11], createdAt: values[12] || new Date().toISOString()
             };
         });
-        
+
         state.tasks.push(...imported);
         saveData();
         renderCurrentPage();
@@ -727,12 +728,12 @@ function toggleTheme() {
     const body = document.body;
     const icon = document.getElementById('themeIcon');
     const text = document.getElementById('themeText');
-    
+
     body.classList.toggle('light-theme');
     const isLight = body.classList.contains('light-theme');
-    
+
     localStorage.setItem('cc_theme', isLight ? 'light' : 'dark');
-    
+
     if (isLight) {
         icon.className = 'fas fa-sun';
         text.innerText = 'Light Mode';
@@ -745,11 +746,20 @@ function toggleTheme() {
 function initTheme() {
     const savedTheme = localStorage.getItem('cc_theme');
     const savedUrl = localStorage.getItem('cc_sheets_url');
+    const savedAiKey = localStorage.getItem('cc_ai_key');
+
     if (savedTheme === 'light') toggleTheme();
+
     if (savedUrl) {
         state.sheetsUrl = savedUrl;
         const input = document.getElementById('sheetsUrlInput');
         if (input) input.value = savedUrl;
+    }
+
+    if (savedAiKey) {
+        state.aiKey = savedAiKey;
+        const aiInput = document.getElementById('aiApiKeyInput');
+        if (aiInput) aiInput.value = savedAiKey;
     }
 }
 
@@ -796,8 +806,8 @@ function renderCharts() {
                 borderRadius: 8
             }]
         },
-        options: { 
-            scales: { 
+        options: {
+            scales: {
                 y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94A3B8' } },
                 x: { grid: { display: false }, ticks: { color: '#94A3B8' } }
             },
@@ -812,7 +822,7 @@ function renderKanban() {
     statuses.forEach(status => {
         const container = document.getElementById(`col-${status}`);
         const tasks = state.tasks.filter(t => t.status === status);
-        
+
         container.innerHTML = tasks.map(t => `
             <div class="kanban-card" onclick="editTask('${t.id}')">
                 <div style="font-size: 0.8rem; color: var(--primary); margin-bottom: 4px;">${t.client}</div>
@@ -831,20 +841,75 @@ function showToast(message, type = 'info') {
     const container = document.getElementById('toastContainer');
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    
+
     const icon = type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle';
     const color = type === 'success' ? 'var(--success)' : type === 'danger' ? 'var(--danger)' : 'var(--primary)';
-    
+
     toast.style.borderLeftColor = color;
     toast.innerHTML = `
         <i class="fas fa-${icon}" style="color: ${color}"></i>
         <span>${message}</span>
     `;
-    
+
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'toastIn 0.3s ease-out reverse';
         setTimeout(() => toast.remove(), 300);
     }, 3000);
+}
+// --- AI Assistant Integration ---
+async function askAiAssistant() {
+    const title = document.getElementById('taskTitle').value;
+    const client = document.getElementById('taskClient').value;
+    const type = document.getElementById('taskContentType').value;
+    const platform = document.getElementById('taskPlatform').value;
+
+    if (!state.aiKey) return showToast('Please enter your OpenAI API Key in Settings.', 'danger');
+    if (!title) return showToast('Please enter a Task Title first.', 'info');
+
+    showToast('AI is thinking...', 'info');
+    const textarea = document.getElementById('taskScript');
+    textarea.placeholder = "Generating creative ideas...";
+
+    try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${state.aiKey}`
+            },
+            body: JSON.stringify({
+                model: "gpt-4o",
+                messages: [{
+                    role: "system",
+                    content: "You are a creative content strategist for videographers and graphic designers. Provide a short, viral script or creative idea based on the user's task."
+                }, {
+                    role: "user",
+                    content: `Generate a script/idea for: ${type} titled "${title}" for client "${client}" on ${platform}. Please include a hook and a brief outline.`
+                }],
+                max_tokens: 500
+            })
+        });
+
+        const data = await response.json();
+        if (data.choices && data.choices[0]) {
+            textarea.value = data.choices[0].message.content;
+            showToast('AI Generation complete!', 'success');
+        } else {
+            throw new Error('Invalid AI response');
+        }
+    } catch (error) {
+        console.error('AI Error:', error);
+        showToast('AI failed to respond. Check your API key.', 'danger');
+    } finally {
+        textarea.placeholder = "Click 'Generate with AI' for inspiration...";
+    }
+}
+
+function saveAiKey() {
+    const key = document.getElementById('aiApiKeyInput').value;
+    state.aiKey = key;
+    localStorage.setItem('cc_ai_key', key);
+    showToast('AI API Key Saved!', 'success');
 }

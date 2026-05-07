@@ -1,0 +1,33 @@
+function doGet(e) {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("tasks");
+    var data = sheet.getDataRange().getValues();
+    var headers = data[0];
+    var json = [];
+    for (var i = 1; i < data.length; i++) {
+        var obj = {};
+        for (var j = 0; j < headers.length; j++) {
+            obj[headers[j]] = data[i][j];
+        }
+        json.push(obj);
+    }
+    return ContentService.createTextOutput(JSON.stringify(json))
+        .setMimeType(ContentService.MimeType.JSON);
+}
+
+function doPost(e) {
+    var params = JSON.parse(e.postData.contents);
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("tasks");
+
+    // Clear existing (Simple sync approach)
+    sheet.clear();
+    var headers = ["id", "title", "client", "platform", "contentType", "workType", "status", "priority", "shootDate", "postDate", "fileLink", "script", "createdAt"];
+    sheet.appendRow(headers);
+
+    params.tasks.forEach(function (t) {
+        var row = headers.map(function (h) { return t[h] || ""; });
+        sheet.appendRow(row);
+    });
+
+    return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+        .setMimeType(ContentService.MimeType.JSON);
+}
