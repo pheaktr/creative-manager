@@ -76,6 +76,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setupModalListeners();
     renderCurrentPage();
     updateDashboardStats();
+
+    // Start Periodic Auto-Sync (Every 5 minutes)
+    setInterval(() => {
+        if (state.sheetsUrl && !state.isSyncing) {
+            syncWithSheets();
+        }
+    }, 5 * 60 * 1000);
 });
 
 function loadData() {
@@ -97,6 +104,11 @@ function loadData() {
 function saveData() {
     localStorage.setItem('cc_tasks', JSON.stringify(state.tasks));
     localStorage.setItem('cc_kpis', JSON.stringify(state.kpis));
+    
+    // Auto-sync if URL is present
+    if (state.sheetsUrl && !state.isSyncing) {
+        syncWithSheets();
+    }
 }
 
 // --- Routing & Navigation ---
