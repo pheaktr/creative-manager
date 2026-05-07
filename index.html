@@ -7,7 +7,8 @@
     <link rel="stylesheet" href="style.css">
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts included in CSS -->
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="app-container">
@@ -39,6 +40,9 @@
                 </a>
                 <a href="#tasks" class="nav-item" data-page="tasks">
                     <i class="fas fa-tasks"></i> All Tasks
+                </a>
+                <a href="#board" class="nav-item" data-page="board">
+                    <i class="fas fa-chalkboard"></i> Kanban Board
                 </a>
                 <a href="#templates" class="nav-item" data-page="templates">
                     <i class="fas fa-file-code"></i> Script Templates
@@ -88,6 +92,17 @@
                     <!-- Stats will be injected by JS -->
                 </div>
 
+                <div class="charts-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 32px;">
+                    <div class="card" style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <h3>Content Distribution</h3>
+                        <canvas id="typeChart" height="200"></canvas>
+                    </div>
+                    <div class="card" style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+                        <h3>Status Overview</h3>
+                        <canvas id="statusChart" height="200"></canvas>
+                    </div>
+                </div>
+
                 <div class="dashboard-secondary-grid" style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
                     <div class="card" style="background: var(--bg-card); padding: 24px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
                         <h3 style="margin-bottom: 20px;">Recent Tasks</h3>
@@ -122,6 +137,38 @@
                     </div>
                     <div class="calendar-grid" id="calendarGrid">
                         <!-- Calendar grid injected by JS -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Kanban Page -->
+            <section id="board" class="content-section">
+                <div class="page-header">
+                    <div class="page-title">
+                        <h1>Kanban Board</h1>
+                        <p>Visualize and manage your production workflow.</p>
+                    </div>
+                </div>
+                <div class="kanban-container">
+                    <div class="kanban-column">
+                        <div class="column-header"><i class="fas fa-lightbulb"></i> Idea</div>
+                        <div class="kanban-tasks" id="col-Idea"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <div class="column-header"><i class="fas fa-camera"></i> Shooting</div>
+                        <div class="kanban-tasks" id="col-Shooting"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <div class="column-header"><i class="fas fa-video"></i> Editing</div>
+                        <div class="kanban-tasks" id="col-Editing"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <div class="column-header"><i class="fas fa-eye"></i> Review</div>
+                        <div class="kanban-tasks" id="col-Review"></div>
+                    </div>
+                    <div class="kanban-column">
+                        <div class="column-header"><i class="fas fa-check-circle"></i> Done</div>
+                        <div class="kanban-tasks" id="col-Done"></div>
                     </div>
                 </div>
             </section>
@@ -486,6 +533,7 @@
         </div>
     </div>
 
+    <div id="toastContainer" class="toast-container"></div>
     <script src="app.js"></script>
 </body>
 </html>

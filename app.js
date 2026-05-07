@@ -178,9 +178,13 @@ function renderCurrentPage() {
         case 'dashboard':
             updateDashboardStats();
             renderRecentTasks();
+            renderCharts();
             break;
         case 'calendar':
             renderCalendar();
+            break;
+        case 'board':
+            renderKanban();
             break;
         case 'daily':
             renderDailyTasks();
@@ -487,7 +491,7 @@ function generateBulkTasks() {
     saveData();
     closeModal('generatorModal');
     navigateTo('tasks');
-    alert(`Generated ${newTasks.length} tasks!`);
+    showToast(`Generated ${newTasks.length} tasks!`, 'success');
 }
 
 // --- Components: Daily Tasks ---
@@ -647,11 +651,11 @@ function saveSheetsUrl() {
     const url = document.getElementById('sheetsUrlInput').value;
     state.sheetsUrl = url;
     localStorage.setItem('cc_sheets_url', url);
-    alert('URL Saved! You can now sync.');
+    showToast('URL Saved! You can now sync.', 'success');
 }
 
 function copyText(text) {
-    navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+    navigator.clipboard.writeText(text).then(() => showToast('Copied to clipboard!', 'success'));
 }
 
 function exportToCSV() {
@@ -732,6 +736,103 @@ function initTheme() {
     if (savedTheme === 'light') toggleTheme();
     if (savedUrl) {
         state.sheetsUrl = savedUrl;
-        document.getElementById('sheetsUrlInput').value = savedUrl;
+        const input = document.getElementById('sheetsUrlInput');
+        if (input) input.value = savedUrl;
     }
+}
+
+// --- Enhanced Features: Charts ---
+let statusChart, typeChart;
+
+function renderCharts() {
+    const ctxStatus = document.getElementById('statusChart').getContext('2d');
+    const ctxType = document.getElementById('typeChart').getContext('2d');
+
+    const statusData = {
+        'Idea': 0, 'Shooting': 0, 'Editing': 0, 'Review': 0, 'Done': 0
+    };
+    const typeData = {};
+
+    state.tasks.forEach(t => {
+        if (statusData[t.status] !== undefined) statusData[t.status]++;
+        typeData[t.contentType] = (typeData[t.contentType] || 0) + 1;
+    });
+
+    if (statusChart) statusChart.destroy();
+    statusChart = new Chart(ctxStatus, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(statusData),
+            datasets: [{
+                data: Object.values(statusData),
+                backgroundColor: ['#94A3B8', '#F59E0B', '#3B82F6', '#A855F7', '#10B981'],
+                borderWidth: 0
+            }]
+        },
+        options: { plugins: { legend: { position: 'bottom', labels: { color: '#94A3B8' } } } }
+    });
+
+    if (typeChart) typeChart.destroy();
+    typeChart = new Chart(ctxType, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(typeData),
+            datasets: [{
+                label: 'Count',
+                data: Object.values(typeData),
+                backgroundColor: '#0066FF',
+                borderRadius: 8
+            }]
+        },
+        options: { 
+            scales: { 
+                y: { beginAtZero: true, grid: { color: '#334155' }, ticks: { color: '#94A3B8' } },
+                x: { grid: { display: false }, ticks: { color: '#94A3B8' } }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
+}
+
+// --- Enhanced Features: Kanban ---
+function renderKanban() {
+    const statuses = ['Idea', 'Shooting', 'Editing', 'Review', 'Done'];
+    statuses.forEach(status => {
+        const container = document.getElementById(`col-${status}`);
+        const tasks = state.tasks.filter(t => t.status === status);
+        
+        container.innerHTML = tasks.map(t => `
+            <div class="kanban-card" onclick="editTask('${t.id}')">
+                <div style="font-size: 0.8rem; color: var(--primary); margin-bottom: 4px;">${t.client}</div>
+                <div style="font-weight: 600; margin-bottom: 8px;">${t.title}</div>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.7rem; color: var(--text-muted);">${t.postDate || 'No date'}</span>
+                    <span class="task-pill" style="background: ${getTaskColor(t.contentType)}">${t.contentType}</span>
+                </div>
+            </div>
+        `).join('') || '<div style="font-size: 0.8rem; color: var(--text-muted); text-align: center; padding: 20px;">Empty</div>';
+    });
+}
+
+// --- Enhanced Features: Toasts ---
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const icon = type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-circle' : 'info-circle';
+    const color = type === 'success' ? 'var(--success)' : type === 'danger' ? 'var(--danger)' : 'var(--primary)';
+    
+    toast.style.borderLeftColor = color;
+    toast.innerHTML = `
+        <i class="fas fa-${icon}" style="color: ${color}"></i>
+        <span>${message}</span>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'toastIn 0.3s ease-out reverse';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
 }
